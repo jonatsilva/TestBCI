@@ -1,8 +1,5 @@
 package com.cl.bci.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -16,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cl.bci.model.Response;
 import com.cl.bci.model.User;
-import com.cl.bci.service.InterfaceUserService;
+import com.cl.bci.service.UserService;
 import com.cl.bci.util.Utils;
 
 /**
@@ -31,60 +29,84 @@ public class UserController {
 	private Logger LOG = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	private InterfaceUserService userService;
+	private UserService userService;
 
 	@PostMapping
-	public User createUser(@Valid @RequestBody User user) {
+	public Response createUser(@Valid @RequestBody User user) {
 		LOG.info("se ejecuta createUser()");
+
+		Response response = new Response();
+
 		try {
+
+			boolean validaMail = Utils.validaEmail(user.getEmail());
+
+			if (!validaMail) {
+				LOG.error("El formato de correo no es valido");
+				response.setMessage("El formato de correo no es valido " + user.getEmail());
+				return response;
+			}
 
 			boolean existMail = userService.getUserByEmail(user.getEmail());
 
 			if (existMail) {
-				System.err.println("El correo ya registrado");
 				LOG.error("El correo ya registrado");
-				throw new Exception("El correo ya registrado");
+				response.setMessage("El correo ya registrado");
+				return response;
 			}
 
 			user.setCreated(Utils.dateFormat());
 
-			return userService.createuser(user);
+			User out = userService.createuser(user);
+
+			response.setAst_login(out.getCreated());
+			response.setCreated(out.getCreated());
+			response.setModified(out.getModified());
+			response.setIsactive("");
+			response.setToken(out.getUuid().toString());
+			response.setUuid(out.getUuid().intValue());
+			response.setMessage("user creado OK");
+
+			return response;
 
 		} catch (Exception e) {
 			LOG.error("Error crear user");
-			return new User();
+			response.setMessage("Error crear user");
+			return response;
+
 		}
 
-	}
-
-	@GetMapping
-	public List<User> getAllUsers() {
-		LOG.info("se ejecuta AllUsers()");
-		try {
-
-			return userService.getAllUsers();
-
-		} catch (Exception e) {
-			LOG.error("Error en consulta lista user");
-			return new ArrayList<User>();
-		}
 	}
 
 	@GetMapping("{id}")
-	public User searchUserById(@PathVariable(value = "id", required = true) Long id) {
+	public Response searchUserById(@PathVariable(value = "id", required = true) Long id) {
 		LOG.info("se ejecuta searchUser()");
+
+		Response response = new Response();
+
 		try {
 
-			return userService.getUserById(id);
+			User out = userService.getUserById(id);
+
+			response.setAst_login("");
+			response.setCreated(out.getCreated());
+			response.setModified(out.getModified());
+			response.setIsactive("");
+			response.setToken(out.getUuid().toString());
+			response.setUuid(out.getUuid().intValue());
+			response.setMessage("Busqueda OK id " + id);
+
+			return response;
 
 		} catch (Exception e) {
 			LOG.error("Error en consulta searchUser");
-			return new User();
+			response.setMessage("Error en buscar user id " + id);
+			return response;
 		}
 	}
 
 	@DeleteMapping("{id}")
-	public void deleteUserById(@PathVariable(value = "id", required = true) Long id) {
+	public String deleteUserById(@PathVariable(value = "id", required = true) Long id) {
 		LOG.info("se ejecuta deleteUser()");
 		try {
 
@@ -92,20 +114,46 @@ public class UserController {
 
 		} catch (Exception e) {
 			LOG.error("Error en consulta deleteUser");
+			return "Error delete user id " + id;
 		}
+
+		return "OK delete user id " + id;
 	}
 
 	@PostMapping("{id}")
-	public String updateUser(@Valid @RequestBody User user, @PathVariable(value = "id", required = true) Long id) {
+	public Response updateUser(@Valid @RequestBody User user, @PathVariable(value = "id", required = true) Long id) {
 		LOG.info("se ejecuta updateUser()");
+
+		Response response = new Response();
+
 		try {
-			userService.updateUser(user, id);
+
+			boolean validaMail = Utils.validaEmail(user.getEmail());
+
+			if (!validaMail) {
+				LOG.error("El formato de correo no es valido");
+				response.setMessage("El formato de correo no es valido " + user.getEmail());
+				return response;
+			}
+
+			User out = userService.updateUser(user, id);
+
+			response.setAst_login("");
+			response.setCreated(out.getCreated());
+			response.setModified(out.getModified());
+			response.setIsactive("");
+			response.setToken(out.getUuid().toString());
+			response.setUuid(out.getUuid().intValue());
+			response.setMessage("actualizar user OK id " + id);
+
+			return response;
 
 		} catch (Exception e) {
 			LOG.error("Error al actualizar user");
-			return "actualizar user NOK";
+			response.setMessage("Error al actualizar user id " + id);
+			return response;
 		}
-		return "actualizar user OK";
+
 	}
 
 }

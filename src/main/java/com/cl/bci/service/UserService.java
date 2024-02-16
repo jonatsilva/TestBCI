@@ -16,7 +16,7 @@ import com.cl.bci.util.Utils;
  * The Class UserService.
  */
 @Component
-public class UserService implements InterfaceUserService {
+public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
@@ -25,25 +25,21 @@ public class UserService implements InterfaceUserService {
 		return userRepository.save(user);
 	}
 
-	@Override
 	public User getUserById(Long id) {
 		Optional<User> optionalUser = userRepository.findById(id);
 		return optionalUser.get();
 	}
 
-	@Override
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
 	}
 
-	@Override
 	public void deleteUser(Long id) {
 		userRepository.deleteById(id);
 
 	}
 
-	@Override
-	public void updateUser(User user, Long id) {
+	public User updateUser(User user, Long id) {
 
 		List<Phones> listPhones = new ArrayList<Phones>();
 
@@ -66,12 +62,10 @@ public class UserService implements InterfaceUserService {
 
 		optionalUser.get().setPhones(listPhones);
 
-		userRepository.save(optionalUser.get());
+		return userRepository.save(optionalUser.get());
 
 	}
 
-	
-	@Override
 	public boolean getUserByEmail(String email) {
 		return userRepository.findByEmail(email);
 

@@ -12,6 +12,7 @@ public class Response implements Serializable {
 	private String ast_login;
 	private String token;
 	private String isactive;
+	private String message;
 
 	public int getUuid() {
 		return uuid;
@@ -60,5 +61,15 @@ public class Response implements Serializable {
 	public void setIsactive(String isactive) {
 		this.isactive = isactive;
 	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
+	
 
 }
